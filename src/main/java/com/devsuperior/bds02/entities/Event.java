@@ -21,7 +21,7 @@ public class Event {
 	private LocalDate date;
 	private String url;
 	
-	@ManyToOne
+	@ManyToOne //muitos eventos para uma cidade
 	@JoinColumn(name = "city_id")
 	private City city;
 	
