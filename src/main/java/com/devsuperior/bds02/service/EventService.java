@@ -3,6 +3,8 @@ package com.devsuperior.bds02.service;
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,21 @@ public class EventService {
 
 	@Autowired
 	private EventRepository eventRepository;
+	
+	@Transactional(readOnly=true)
+	public Page<EventDTO> findAllPaged(Pageable pageable) {
+		Page<Event> list=eventRepository.findAll(pageable); //findAllPaged = retorna uma página (Page)
+		
+		return list.map(x -> new EventDTO(x));
+		
+		//List<ProductDTO> listDto=list.stream().map(x -> new ProductDTO(x)).collect(Collectors.toList());
+		/*List<ProductDTO> listDto=new ArrayList<>();
+		for(Product cat : list)
+		{
+			listDto.add(new ProductDTO(cat));
+		}
+		return listDto;*/
+	}
 	
 	/*@Transactional(readOnly=true)
 	public ProductDTO findById(Long id) {
