@@ -29,7 +29,7 @@ public class CityController {
         return ResponseEntity.ok().body(list);
     }
 
-    @GetMapping(value = "/paged")
+    @GetMapping(value = "/sorted")
     public ResponseEntity<List<CityDTO>> findAllSortByName() {
         List<CityDTO> list = service.findAllSortByName();
         return ResponseEntity.ok().body(list);
