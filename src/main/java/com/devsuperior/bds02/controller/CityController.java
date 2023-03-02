@@ -43,6 +43,12 @@ public class CityController {
         return ResponseEntity.created(uri).body(dto);
     }
 
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<CityDTO> update(@PathVariable Long id, @RequestBody CityDTO cityDto) {
+        cityDto = service.update(id, cityDto);
+        return ResponseEntity.ok().body(cityDto);
+    }
+
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

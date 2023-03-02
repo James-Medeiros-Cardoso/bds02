@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,18 @@ public class CityService {
 
         entity = repository.save(entity);
         return new CityDTO(entity);
+    }
+
+    @Transactional
+    public CityDTO update(Long id, CityDTO cityDto) {
+        try {
+            City city = repository.getOne(id);
+            city.setName(cityDto.getName());
+            city = repository.save(city);
+            return new CityDTO(city);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("CityService/Entity not found. Id = " + id);
+        }
     }
 
     public void delete(Long id) {
