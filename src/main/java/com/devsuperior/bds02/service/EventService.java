@@ -1,82 +1,75 @@
 package com.devsuperior.bds02.service;
 
-import javax.persistence.EntityNotFoundException;
-
+import com.devsuperior.bds02.dto.EventDTO;
+import com.devsuperior.bds02.entities.Event;
+import com.devsuperior.bds02.repositories.CityRepository;
+import com.devsuperior.bds02.repositories.EventRepository;
+import com.devsuperior.bds02.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.devsuperior.bds02.dto.EventDTO;
-import com.devsuperior.bds02.entities.City;
-import com.devsuperior.bds02.entities.Event;
-import com.devsuperior.bds02.repositories.EventRepository;
-import com.devsuperior.bds02.services.exceptions.ResourceNotFoundException;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 public class EventService {
 
-	@Autowired
-	private EventRepository eventRepository;
-	
-	@Transactional(readOnly=true)
-	public Page<EventDTO> findAllPaged(Pageable pageable) {
-		Page<Event> list=eventRepository.findAll(pageable); //findAllPaged = retorna uma página (Page)
-		
-		return list.map(x -> new EventDTO(x));
-		
-		//List<ProductDTO> listDto=list.stream().map(x -> new ProductDTO(x)).collect(Collectors.toList());
-		/*List<ProductDTO> listDto=new ArrayList<>();
-		for(Product cat : list)
-		{
-			listDto.add(new ProductDTO(cat));
-		}
-		return listDto;*/
-	}
-	
-	/*@Transactional(readOnly=true)
-	public ProductDTO findById(Long id) {
-		Optional<Product> obj=repository.findById(id);
-		Product entity=obj.orElseThrow(() -> new ResourceNotFoundException("Entity not Found."));
-		return new ProductDTO(entity, entity.getCategories());
-	}*/
+    @Autowired
+    private EventRepository eventRepository;
 
-	/*@Transactional
-	public ProductDTO insert(ProductDTO dto) {
-		Product entity=new Product();
-		copyDtoToEntity(dto, entity); //entity.setName(dto.getName());
-		entity=repository.save(entity);
-		return new ProductDTO(entity);
-	}*/
+    @Autowired
+    private CityRepository cityRepository;
 
-	@Transactional
-	public EventDTO update(Long id, EventDTO dto) {
-		try {
-			Event entity=eventRepository.getOne(id); //getOne para atualizar dados
-			
-			entity.setName(dto.getName());
-			entity.setDate(dto.getDate());
-			entity.setUrl(dto.getUrl());
-			entity.setCity(new City(dto.getCityId(), null));
-		
-			entity=eventRepository.save(entity);
-			return new EventDTO(entity);
-		}
-		catch(EntityNotFoundException e) { //EntityNotFoundException = exceção da JPA
-			throw new ResourceNotFoundException("Id not found "+id);
-		}
-	}
+    @Transactional(readOnly = true)
+    public Page<EventDTO> findAllPaged(Pageable pageable) {
+        Page<Event> list = eventRepository.findAll(pageable); //findAllPaged = retorna uma página (Page)
+        return list.map(x -> new EventDTO(x));
+    }
 
-	/*public void delete(Long id) {
-		try {
-			repository.deleteById(id);
-		}
-		catch (EmptyResultDataAccessException e) {
-			throw new ResourceNotFoundException("Id not found "+id);
-		}
-		catch (DataIntegrityViolationException e) {
-			throw new DatabaseException("Integrity violation");
-		}
-	}*/
+    @Transactional(readOnly = true)
+    public EventDTO findById(Long id) {
+        Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(
+                "EventService/Entity not found. Id = " + id));
+        return new EventDTO(event);
+    }
+
+    @Transactional
+    public EventDTO insert(EventDTO eventDto) {
+        Event event = new Event();
+        copyDtoToEntity(eventDto, event);
+        event = eventRepository.save(event);
+        return new EventDTO(event);
+    }
+
+    @Transactional
+    public EventDTO update(Long id, EventDTO eventDto) {
+        try {
+            Event event = eventRepository.getOne(id); //getOne para atualizar dados
+            copyDtoToEntity(eventDto, event);
+            event = eventRepository.save(event);
+            return new EventDTO(event);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("EventService/Entity not found. Id = " + id);
+        }
+    }
+
+    public void delete(Long id) {
+        try {
+            eventRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ResourceNotFoundException("EventService/Entity not found. Id = " + id);
+        }
+    }
+
+    private void copyDtoToEntity(EventDTO eventDto, Event event) {
+        event.setName(eventDto.getName());
+        event.setDate(eventDto.getDate());
+        event.setUrl(eventDto.getUrl());
+        event.setCity(cityRepository.findById(eventDto.getCityId()).orElseThrow(
+                () -> new ResourceNotFoundException("EventService/Entity not found. Id = " + eventDto.getCityId())
+        ));
+    }
 }
